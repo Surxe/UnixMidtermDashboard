@@ -4,7 +4,14 @@ sys.path.append('..')
 import os
 import json
 
-data_dir = 'data'
+# Take the first parameter as the server name, i.e. python3 src/validate_metrics.py server1
+if len(sys.argv) > 1:
+    server_name = sys.argv[1]
+else:
+    server_name = 'server1' #defaults to server1
+
+
+data_dir = os.path.join('data', server_name)
 
 # Get the metrics json file
 metrics_path = None

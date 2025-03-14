@@ -18,11 +18,7 @@ for file in os.listdir(data_dir):
     if file.endswith('.json'):
         json_file = os.path.join(data_dir, file)
 
-if txt_file is None:
-    raise FileNotFoundError('No .txt file found in data dir')
-if json_file is None:
-    raise FileNotFoundError('A txt file exist but a json does not, please parse the data first before archiving')
-
-# Move the files
-os.rename(txt_file, os.path.join(archive_dir, os.path.basename(txt_file)))
-os.rename(json_file, os.path.join(archive_dir, os.path.basename(json_file)))
+if txt_file is not None:
+    os.rename(txt_file, os.path.join(archive_dir, os.path.basename(txt_file)))
+if json_file is not None:
+    os.rename(json_file, os.path.join(archive_dir, os.path.basename(json_file)))

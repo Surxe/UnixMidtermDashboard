@@ -1,4 +1,4 @@
-from view import *
+#from view import *
 import socket
 import threading
 
@@ -7,19 +7,12 @@ server_addresses = [('127.0.0.1', 3300)]
 
 class Controller:
     def __init__(self) -> None:
-        # Declaring GUI root and other components
-        self.root = tk.Tk()
-        self.view = View(self.root, self)
-        self.root.title("Computer Networks Project")
-        self.root.geometry("800x600")
         # Declaring socket components
         self.sockets = []
         self.running = False
 
     def run(self) -> None:
-        self.view.pack_widgets() # Display buttons, labels, etc.
         self.connect_to_servers() # Connect to servers
-        self.root.mainloop() # Pull up the GUI
 
     def connect_to_servers(self) -> None:
         if not self.running:

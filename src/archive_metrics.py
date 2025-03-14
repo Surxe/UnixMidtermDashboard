@@ -20,9 +20,9 @@ for i in range(1, 4): # [1, 2, 3]
 
     # Find the json files
     json_file = None
-    for file in os.listdir(data_dir):
+    for file in os.listdir(server_dir):
         if file.endswith('.json'):
-            json_file = os.path.join(data_dir, file)
+            json_file = os.path.join(server_dir, file)
 
     if json_file is not None:
         new_path = os.path.join(archive_dir, os.path.basename(json_file))

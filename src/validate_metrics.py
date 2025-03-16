@@ -4,59 +4,55 @@ sys.path.append('..')
 import os
 import json
 
-# Take the first parameter as the server name, i.e. python3 src/validate_metrics.py server1
-if len(sys.argv) > 1:
-    server_name = sys.argv[1]
-else:
-    server_name = 'server1' #defaults to server1
+data_dir = 'data'
 
+for server_dir in os.listdir(data_dir):
+    server_name = server_dir
+    server_path = os.path.join(data_dir, server_dir)
+   
+    # Get the metrics json file
+    metrics_path = None
+    for file in os.listdir(server_path):
+        if not file.endswith('.json'):
+            continue
 
-data_dir = os.path.join('data', server_name)
+        metrics_path = os.path.join(server_path, file)
+        
 
-# Get the metrics json file
-metrics_path = None
-for file in os.listdir(data_dir):
-    if file.endswith('.json'):
-        metrics_path = os.path.join(data_dir, file)
-        break
+        # Load the metrics
+        metrics = None
+        with open(metrics_path, 'r') as f:
+            metrics = json.load(f)
+        if metrics is None:
+            raise ValueError('No data found in the metrics file')
 
-if metrics_path is None:
-    raise FileNotFoundError('No .json file found in data dir, please get and parse metrics before validating')
+        # Validate the metrics
+        warnings = []
 
-# Load the metrics
-metrics = None
-with open(metrics_path, 'r') as f:
-    metrics = json.load(f)
-if metrics is None:
-    raise ValueError('No data found in the metrics file')
+        # Cpu
+        idle_threshold = 50.0 #%
+        cpu_metrics = metrics['%CPU(s)']
+        if cpu_metrics['Idle'] >= idle_threshold:
+            warnings.append(f"CPU Idle is too high: {cpu_metrics['Idle']}% >= {idle_threshold}%")
 
-# Validate the metrics
-warnings = []
+        # Memory
+        available_threshold = 10
+        mem_metrics = metrics['Memory (MB)']
+        if mem_metrics['Available'] <= available_threshold:
+            warnings.append(f"Memory Available is too low: {mem_metrics['Available']} <= {available_threshold}")
 
-# Cpu
-idle_threshold = 50.0 #%
-cpu_metrics = metrics['%CPU(s)']
-if cpu_metrics['Idle'] >= idle_threshold:
-    warnings.append(f"CPU Idle is too high: {cpu_metrics['Idle']}% >= {idle_threshold}%")
+        # Disk
+        usage_threshold = 75.0
+        disk_metrics = metrics['Disk']
+        usage = float(disk_metrics['Use %'])
+        if usage >= usage_threshold:
+            warnings.append(f"Disk Usage is too high: {usage}% >= {usage_threshold}%")
 
-# Memory
-available_threshold = 10
-mem_metrics = metrics['Memory (MB)']
-if mem_metrics['Available'] <= available_threshold:
-    warnings.append(f"Memory Available is too low: {mem_metrics['Available']} <= {available_threshold}")
+        # Disk IO
+        cpu_usage_threshold = 95.0
+        disk_io_metrics = metrics['Disk I/O']
+        cpu_usage = disk_io_metrics['Percentage of CPU Utilization']
+        if usage >= cpu_usage_threshold:
+            warnings.append(f"Disk IO CPU Usage is too high: {cpu_usage}% >= {cpu_usage_threshold}%")
 
-# Disk
-usage_threshold = 75.0
-disk_metrics = metrics['Disk']
-usage = float(disk_metrics['Use %'])
-if usage >= usage_threshold:
-    warnings.append(f"Disk Usage is too high: {usage}% >= {usage_threshold}%")
-
-# Disk IO
-cpu_usage_threshold = 95.0
-disk_io_metrics = metrics['Disk I/O']
-cpu_usage = disk_io_metrics['Percentage of CPU Utilization']
-if usage >= cpu_usage_threshold:
-    warnings.append(f"Disk IO CPU Usage is too high: {cpu_usage}% >= {cpu_usage_threshold}%")
-
-print(f'Warnings: {warnings}')
+        print(f"Server '{server_name}' has Warnings: {warnings}")

@@ -7,8 +7,7 @@ import os
 import json
 import subprocess
 
-#server_addresses = [('35.211.173.229', 3300), ('35.211.22.252', 3300), ('35.211.62.178', 3300)]  # Input server addresses in form of (IP, Port), and use the nic0 external IP address
-server_addresses = [('34.73.13.5', 12345)]
+server_addresses = [('104.192.14.240', 12345), ('34.73.70.183', 12345), ('35.231.188.2', 12345)]  # Input server addresses in form of (IP, Port), and use the nic0 external IP address
 
 parent_dir = "data"
 sub_dirs = ["server1", "server2", "server3", "midterm-testing"]
@@ -37,7 +36,7 @@ class Controller:
                 print(f"Connected to {server_address[0]}:{server_address[1]}")
                 while True:
                     try:
-                        client_socket.sendall(b"bash get_metrics.sh:python3 src/parse_metrics.py")
+                        client_socket.sendall(b"bash get_metrics.sh:python3 parse_metrics.py")
                         response = client_socket.recv(1024)
                         print(f"Received from {server_address[0]}:{server_address[1]}: File Path: {response.decode('utf-8')}")
                         pathway = response.decode('utf-8').split("/")
@@ -60,8 +59,8 @@ class Controller:
                         json_data = json.loads(json_str)
                         with open(sub_path, "w") as file:
                             json.dump(json_data, file, indent=4)
-                        subprocess.run(["python3", "src/validate_metrics.py"])
-                        subprocess.run(["python3", "src/archive_metrics.py"])
+                        subprocess.run(["python3", "validate_metrics.py"])
+                        subprocess.run(["python3", "archive_metrics.py"])
                         time.sleep(60)
                     except (socket.error, ConnectionError):
                         print(f"Lost connection to {server_address[0]}:{server_address[1]}, reconnecting...")

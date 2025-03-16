@@ -1,9 +1,11 @@
+import fileinput
 import socket
+import struct
 import threading
 import time
 import os
 import json
-from os.path import exists
+import subprocess
 
 #server_addresses = [('35.211.173.229', 3300), ('35.211.22.252', 3300), ('35.211.62.178', 3300)]  # Input server addresses in form of (IP, Port), and use the nic0 external IP address
 server_addresses = [('34.73.13.5', 12345)]
@@ -37,22 +39,30 @@ class Controller:
                     try:
                         client_socket.sendall(b"bash get_metrics.sh:python3 parse_metrics.py")
                         response = client_socket.recv(1024)
-                        if not response:
-                            raise ConnectionError
-                        print(f"Received from {server_address[0]}:{server_address[1]}: {response.decode('utf-8')}")
+                        print(f"Received from {server_address[0]}:{server_address[1]}: File Path: {response.decode('utf-8')}")
                         pathway = response.decode('utf-8').split("/")
                         sub_path = os.path.join(parent_dir, pathway[1], pathway[2])
+                        print("Waiting for JSON length...")
+                        json_length_data = client_socket.recv(4)
+                        if len(json_length_data) < 4:
+                            print("[!] Failed to receive JSON length")
+                            exit()
+                        json_length = struct.unpack('!I', json_length_data)[0]
+                        print(f"[*] Expecting JSON of {json_length} bytes")
                         received_data = b""
-                        while True:
+                        while len(received_data) < json_length:
                             chunk = client_socket.recv(1024)
                             if not chunk:
                                 break
                             received_data += chunk
-                        print(f"Received from {server_address[0]}:{server_address[1]}: All json data received")
-                        json_data = json.loads(received_data.decode('utf-8'))
-                        with open(os.path.join(sub_path, pathway[2]), "w") as file:
+                        json_str = received_data.decode('utf-8')
+                        print(f"[*] Received JSON: {json_str[:100]}...")
+                        json_data = json.loads(json_str)
+                        with open(sub_path, "w") as file:
                             json.dump(json_data, file, indent=4)
-                        time.sleep(5)
+                        subprocess.run(["python3", "validate_metrics.py"])
+                        subprocess.run(["python3", "archive_metrics.py"])
+                        time.sleep(60)
                     except (socket.error, ConnectionError):
                         print(f"Lost connection to {server_address[0]}:{server_address[1]}, reconnecting...")
                         break

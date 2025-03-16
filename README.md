@@ -19,4 +19,4 @@ This dashboard is designed to be connected to a GCP Google Cloud Ubuntu VM insta
 2. Every 5 minutes of the dashboard's runtime, it will request the server to retrieve metrics of the server's status. When the dashboard receives them, it will run:
    1. `python3 src/validate_metrics.py` - Validates the metrics to ensure they do not exceed any arbitrarily set thresholds.
    2. `python3 src/archive_metrics.py` - Archives all json metrics from `data/serverN/metrics_<timestamp>.json` to `data/serverN/archive/metrics_<timestamp>json`
-   3. `python3 src/plot.py` - Plots the archived metrics from all servers and all timestamps using the `plotly` library.
+3. `python3 src/plot.py` - Plots the archived metrics from all servers and all timestamps using the `plotly` library.

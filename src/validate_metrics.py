@@ -41,14 +41,14 @@ if cpu_metrics['Idle'] >= idle_threshold:
 
 # Memory
 available_threshold = 10
-mem_metrics = metrics['Memory']
+mem_metrics = metrics['Memory (MB)']
 if mem_metrics['Available'] <= available_threshold:
     warnings.append(f"Memory Available is too low: {mem_metrics['Available']} <= {available_threshold}")
 
 # Disk
 usage_threshold = 90.0
 disk_metrics = metrics['Disk']
-usage = float(disk_metrics['Use%'].split('%')[0])
+usage = float(disk_metrics['Use %'])
 if usage >= usage_threshold:
     warnings.append(f"Disk Usage is too high: {usage}% >= {usage_threshold}%")
 

@@ -7,7 +7,7 @@ import os
 import json
 import subprocess
 
-server_addresses = [('104.192.14.240', 12345), ('34.73.70.183', 12345), ('35.231.188.2', 12345)]  # Input server addresses in form of (IP, Port), and use the nic0 external IP address
+server_addresses = [('104.192.14.240', 12345), ('34.29.181.107', 12345), ('35.222.84.158', 12345)]  # Input server addresses in form of (IP, Port), and use the nic0 external IP address
 
 parent_dir = "data"
 sub_dirs = ["server1", "server2", "server3", "midterm-testing"]

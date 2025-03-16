@@ -9,8 +9,8 @@ data_dir = 'data'
 if not os.path.exists(data_dir):
     raise Exception(f"Data directory '{data_dir}' does not exist")
 
-for i in range(1, 4): # [1, 2, 3]
-    server_dir = f"{data_dir}/server{i}" # data/serverN
+for server_dir in os.listdir(data_dir):
+    server_dir = os.path.join(data_dir, server_dir) # data/serverN
     if not os.path.exists(server_dir):
         os.makedirs(server_dir) # Create the server dir
 

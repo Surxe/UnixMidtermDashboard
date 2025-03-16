@@ -1,62 +1,44 @@
 #from view import *
 import socket
 import threading
+import time
 
-#server_addresses = [('35.211.173.229', 3300), ('35.211.22.252', 3300), ('35.211.62.178', 3300)]  # Input server addresses in form of (IP, Port), and use the external IP address
-server_addresses = [('127.0.0.1', 3300)]
+#server_addresses = [('35.211.173.229', 3300), ('35.211.22.252', 3300), ('35.211.62.178', 3300)]  # Input server addresses in form of (IP, Port), and use the nic0 external IP address
+server_addresses = [('127.0.0.1', 12345)]
 
 class Controller:
     def __init__(self) -> None:
         # Declaring socket components
-        self.sockets = []
-        self.running = False
+        self.sockets = {}
+        self.running = True
 
-    def run(self) -> None:
-        self.connect_to_servers() # Connect to servers
+    def start(self):
+        for server in server_addresses:
+            threading.Thread(target=self.handle_server, args=(server,)).start()
 
-    def connect_to_servers(self) -> None:
-        if not self.running:
-            # If the client is not running, set the running bool to true and clear sockets array
-            self.running = True
-            self.sockets = []
-            for address, port in server_addresses:
-                # For each IP and port in, attempt connections and add them to sockets array.
-                try:
-                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    sock.connect((address, port))
-                    self.sockets.append(sock)
-                    print(f"Connected to {address}")
-                    threading.Thread(target=self.handle_server, args=(sock, address), daemon=True).start()
-                except Exception as e:
-                    # Print out any error that occurred
-                    print(f"Error connecting to {address}: {e}")
-        else:
-            print("Client is already running")
-
-    def handle_server(self, sock, address) -> None:
+    def handle_server(self, server_address):
         while True:
             try:
-                # sock.send(b'echo "Hello from the client!"')
-                # Wait to receive data from the server
-                data = sock.recv(1024)
-                # Print valid data, otherwise disconnect from the server and close the socket.
-                if data:
-                    print(f"Received from {address}: {data.decode('utf-8')}")
-                else:
-                    print(f"Disconnected from {address}")
-                    self.sockets.remove(sock)
-                    sock.close()
-            # Print any error that occurred
-            except Exception as e:
-                print(f"Error receiving from {address}: {e}")
-            if not self.sockets:
-                # If no more sockets left in array, close the client.
-                print("All connections closed. Stopping Client.")
-                self.running = False
-                break
-
+                client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                client_socket.settimeout(5)
+                client_socket.connect(server_address)
+                print(f"Connected to {server_address[0]}:{server_address[1]}")
+                while True:
+                    try:
+                        client_socket.sendall(b"bash src/stresser.sh:bash src/get_metrics.sh:python3 src/parse_metrics.py")
+                        response = client_socket.recv(1024)
+                        if not response:
+                            raise ConnectionError
+                        print(f"Received from {server_address[0]}:{server_address[1]}: {response.decode('utf-8')}")
+                        time.sleep(300)
+                    except (socket.error, ConnectionError):
+                        print(f"Lost connection to {server_address[0]}:{server_address[1]}, reconnecting...")
+                        break
+            except (socket.error, ConnectionRefusedError) as e:
+                print(f"Failed to connect to {server_address}, retrying...")
+                time.sleep(5)
 
 
 if __name__ == "__main__":
     c = Controller()
-    c.run()
+    c.start()

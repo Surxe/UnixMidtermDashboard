@@ -36,7 +36,7 @@ class Controller:
                 print(f"Connected to {server_address[0]}:{server_address[1]}")
                 while True:
                     try:
-                        client_socket.sendall(b"bash get_metrics.sh:python3 parse_metrics.py")
+                        client_socket.sendall(b"bash src/get_metrics.sh:python3 src/parse_metrics.py")
                         response = client_socket.recv(1024)
                         print(f"Received from {server_address[0]}:{server_address[1]}: File Path: {response.decode('utf-8')}")
                         pathway = response.decode('utf-8').split("/")
